@@ -1,0 +1,7 @@
+{
+  "name": "ur-practical-2026",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up --build --renew-anon-volumes"
+  }
+}

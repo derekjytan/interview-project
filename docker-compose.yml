@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: chatbot
+    ports: ["5433:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d chatbot"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  api:
+    build: ./server
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      DATABASE_URL: postgresql://app:app@db:5432/chatbot
+    volumes: ["./server:/app"]
+    ports: ["8787:8787"]
+    depends_on:
+      db: { condition: service_healthy }
+  web:
+    build: ./web
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    ports: ["5273:5273"]
+    depends_on: [api]
+volumes:
+  pgdata:
